@@ -192,54 +192,58 @@ echo ""
 
 # ---------------------------------------------------------------------------
 # 5. Parchear opencode.json con los permisos del kit
+#
+# OpenCode usa "permission" (singular) con tool: "allow"/"ask"/"deny"
+# Formato: { "permission": { "task": "allow", "read": "allow", ... } }
 # ---------------------------------------------------------------------------
 log "Verificando permisos en opencode.json ..."
 echo ""
 
 # Crear opencode.json mínimo si no existe
 if [[ ! -f "$OPENCODE_JSON" ]]; then
-  echo '{"$schema":"https://opencode.ai/config.json","permissions":{"allow":[]}}' > "$OPENCODE_JSON"
+  echo '{"$schema":"https://opencode.ai/config.json"}' > "$OPENCODE_JSON"
   ok "opencode.json creado"
 fi
 
-SDD_PERMISSIONS=(
-  "Task(*)"
-  "Read(~/.config/opencode/skills/custom-sdd-kit/**)"
-  "Read(~/.config/opencode/skills/sdd.*/**)"
-  "Skill(sdd.*)"
-)
+# Permisos necesarios para el kit: task (sub-agentes), read (skill files), skill (invocar skills)
+SDD_TOOLS=("task" "read" "skill")
 
 patch_permission() {
-  local perm="$1"
+  local tool="$1"
   local settings="$2"
 
-  if grep -qF "\"$perm\"" "$settings" 2>/dev/null; then
-    skip "permissions: $perm"
+  # Verificar si ya está seteado como "allow"
+  if python3 -c "
+import sys, json
+with open('$settings') as f:
+    data = json.load(f)
+perm = data.get('permission', {})
+sys.exit(0 if perm.get('$tool') == 'allow' else 1)
+" 2>/dev/null; then
+    skip "permission.$tool"
     return
   fi
 
   if command -v jq &>/dev/null; then
     local tmp
     tmp=$(mktemp)
-    jq --arg p "$perm" '.permissions.allow += [$p]' "$settings" > "$tmp" && mv "$tmp" "$settings"
+    jq --arg t "$tool" '.permission[$t] = "allow"' "$settings" > "$tmp" && mv "$tmp" "$settings"
   else
-    python3 - "$settings" "$perm" <<'PYEOF'
+    python3 - "$settings" "$tool" <<'PYEOF'
 import sys, json
-path, perm = sys.argv[1], sys.argv[2]
+path, tool = sys.argv[1], sys.argv[2]
 with open(path) as f:
     data = json.load(f)
-data.setdefault("permissions", {}).setdefault("allow", [])
-if perm not in data["permissions"]["allow"]:
-    data["permissions"]["allow"].append(perm)
+data.setdefault("permission", {})[tool] = "allow"
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
 PYEOF
   fi
-  ok "permissions: $perm"
+  ok "permission.$tool = allow"
 }
 
-for perm in "${SDD_PERMISSIONS[@]}"; do
-  patch_permission "$perm" "$OPENCODE_JSON"
+for tool in "${SDD_TOOLS[@]}"; do
+  patch_permission "$tool" "$OPENCODE_JSON"
 done
 
 echo ""
