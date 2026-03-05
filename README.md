@@ -7,19 +7,35 @@ Combina lo mejor del SDD Skills Kit y el Meli SDD Kit sin dependencias de plataf
 
 ## Instalacion rapida
 
-Clonar el repo y ejecutar el installer (registra los skills Y parchea `CLAUDE.md`):
+Clonar el repo:
 ```bash
 git clone https://github.com/RamiroCS-hub/simple_mutiple_agents_sdd sdd-custom-kit
 cd sdd-custom-kit
+```
+
+### Claude Code
+Registra skills, parchea `~/.claude/CLAUDE.md` y agrega permisos a `settings.json`:
+```bash
 bash install.sh
 ```
 
-Para actualizar despues de hacer `git pull`:
+### OpenCode
+Registra skills en `~/.config/opencode/skills/`, parchea `AGENTS.md` y `opencode.json`:
 ```bash
-bash install.sh --force
+bash install-opencode.sh
 ```
 
-**Sin installer** (manual): agrega el bloque de `CLAUDE-INTEGRATION.md` a `~/.claude/CLAUDE.md`.
+> OpenCode tambien detecta skills en `~/.claude/skills/` — si ya corriste `install.sh`,
+> ambas herramientas comparten las mismas definiciones. `install-opencode.sh` agrega
+> lo especifico de OpenCode: AGENTS.md global y permisos en opencode.json.
+
+Para actualizar despues de `git pull`:
+```bash
+bash install.sh --force          # Claude Code
+bash install-opencode.sh --force # OpenCode
+```
+
+**Sin installer** (manual): agrega el bloque de `CLAUDE-INTEGRATION.md` a tu archivo de instrucciones global.
 
 Verifica la instalacion:
 ```
