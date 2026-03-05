@@ -176,6 +176,63 @@ else
   ok "CLAUDE.md parcheado"
 fi
 
+# ---------------------------------------------------------------------------
+# 5. Parchear ~/.claude/settings.json con los permisos del kit
+# ---------------------------------------------------------------------------
+SETTINGS_JSON="$HOME/.claude/settings.json"
+log "Verificando permisos en settings.json ..."
+echo ""
+
+# Permisos necesarios para que Claude use el kit sin pedir confirmación
+SDD_PERMISSIONS=(
+  "Task(*)"
+  "Read($KIT_DEST/**)"
+  "Read($CLAUDE_SKILLS/sdd.*/**)"
+  "Skill(sdd.*)"
+)
+
+patch_permission() {
+  local perm="$1"
+  local settings="$2"
+
+  # Si ya existe, skip
+  if grep -qF "\"$perm\"" "$settings" 2>/dev/null; then
+    skip "permissions: $perm"
+    return
+  fi
+
+  # Insertar con jq si está disponible, si no con python3
+  if command -v jq &>/dev/null; then
+    local tmp
+    tmp=$(mktemp)
+    jq --arg p "$perm" '.permissions.allow += [$p]' "$settings" > "$tmp" && mv "$tmp" "$settings"
+  else
+    python3 - "$settings" "$perm" <<'PYEOF'
+import sys, json
+path, perm = sys.argv[1], sys.argv[2]
+with open(path) as f:
+    data = json.load(f)
+data.setdefault("permissions", {}).setdefault("allow", [])
+if perm not in data["permissions"]["allow"]:
+    data["permissions"]["allow"].append(perm)
+with open(path, "w") as f:
+    json.dump(data, f, indent=2)
+PYEOF
+  fi
+  ok "permissions: $perm"
+}
+
+# Crear settings.json mínimo si no existe
+if [[ ! -f "$SETTINGS_JSON" ]]; then
+  mkdir -p "$(dirname "$SETTINGS_JSON")"
+  echo '{"permissions":{"allow":[],"deny":[]}}' > "$SETTINGS_JSON"
+  ok "settings.json creado"
+fi
+
+for perm in "${SDD_PERMISSIONS[@]}"; do
+  patch_permission "$perm" "$SETTINGS_JSON"
+done
+
 echo ""
 log "Instalación completa."
 echo ""
