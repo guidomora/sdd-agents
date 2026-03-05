@@ -184,10 +184,11 @@ log "Verificando permisos en settings.json ..."
 echo ""
 
 # Permisos necesarios para que Claude use el kit sin pedir confirmación
+# IMPORTANTE: usar ~ en las rutas — Claude Code las compara con tilde, no con ruta absoluta
 SDD_PERMISSIONS=(
   "Task(*)"
-  "Read($KIT_DEST/**)"
-  "Read($CLAUDE_SKILLS/sdd.*/**)"
+  "Read(~/.claude/skills/custom-sdd-kit/**)"
+  "Read(~/.claude/skills/sdd.*/**)"
   "Skill(sdd.*)"
 )
 
