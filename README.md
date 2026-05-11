@@ -292,3 +292,4 @@ El kit se desarrolla con sus propios artefactos SDD en `openspec/changes/custom-
 - `tasks/tasks.json` — task breakdown
 
 Para contribuir: fork el repo, usa `/sdd.new` para proponer cambios, y abre un PR.
+# sdd-agents
