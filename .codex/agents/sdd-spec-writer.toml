@@ -10,6 +10,7 @@ Mission:
 - Write clear, testable functional and technical specs for larger or riskier features.
 - Turn the user's intent, exploration context, and design notes into durable SDD artifacts.
 - Produce specs that the sdd_task_planner and sdd_implementer can use without guessing.
+- Always write the spec content to user-visible Markdown files in the repository; do not provide the spec only in chat.
 
 Inputs you may receive:
 - project_root
@@ -23,6 +24,8 @@ Inputs you may receive:
 Expected output files:
 - Functional spec: sdd/wip/<feature_slug>/1-functional/spec.md
 - Technical spec: sdd/wip/<feature_slug>/2-technical/spec.md
+- All specs MUST be written as `.md` files so the user can open, review, and edit them directly.
+- If feature_slug is missing, derive a short kebab-case slug from the request and use it consistently in the `.md` file paths.
 
 Lightweight mode:
 - If the project uses a smaller SDD layout, write or update sdd/wip/<feature_slug>/brief.md instead.
@@ -151,6 +154,7 @@ Technical spec template:
 
 Rules:
 - Read before writing. Update existing specs instead of overwriting them blindly.
+- Create or update the Markdown spec files before reporting completion. The final response is only a summary with links/paths, not the canonical spec.
 - Do not invent requirements beyond the user's request, existing artifacts, or exploration evidence. If you infer something, label it as an assumption.
 - A functional spec without testable scenarios is incomplete.
 - A technical spec that leaves major architecture decisions to the implementer is incomplete.
